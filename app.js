@@ -6,8 +6,31 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const db = require('./server/db.js'); //引入封装的db模块
 
 var app = express();
+
+// var mysql = require('mysql');
+
+// var connection = mysql.createConnection({
+//     host: '39.106.83.197',
+//     user: 'root',
+//     password: 'zxcv123.',
+//     database: 'sincenir-blog'
+// })
+
+// connection.connect();
+
+// connection.query('SELECT * from blog', function (err, data, fields) {
+//     if (err) {
+//         console.log(err);
+//         return;
+//     };
+
+//     console.log(data);
+// });
+
+// connection.end();
 
 let blogs = [
     {
@@ -18,7 +41,7 @@ let blogs = [
         updateDate: 100,
         creator: "樊鹏飞",
         groupId: 2
-    },{
+    }, {
         id: 2,
         name: "可选表达式",
         filePath: "javaScript/ES6/可选表达式.html",
@@ -26,7 +49,7 @@ let blogs = [
         updateDate: 100,
         creator: "樊鹏飞",
         groupId: 3
-    },{
+    }, {
         id: 3,
         name: "promise",
         filePath: "javaScript/ES6/promise.html",
@@ -34,7 +57,7 @@ let blogs = [
         updateDate: 100,
         creator: "樊鹏飞",
         groupId: 3
-    },{
+    }, {
         id: 4,
         name: "内存泄漏",
         filePath: "javaScript/内存泄漏.html",
@@ -94,8 +117,26 @@ let groups = [
     }
 ]
 
+app.all('*', function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+    res.header("X-Powered-By", ' 3.2.1')
+    res.header("Content-Type", "application/json;charset=utf-8");
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+});
+
 app.get('/getGroups', (req, res) => {
-    res.send(groups);
+    db.query("SELECT * from blog_grop;")
+    .then((result) => {
+        const dataString = JSON.stringify(result);
+        const data = JSON.parse(dataString);
+        res.send(data);
+    }).catch((err) => {
+        console.log(err);
+        res.send("error");
+    });
 })
 
 app.get('/getBlogs', (req, res) => {
@@ -139,19 +180,19 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.use(function (req, res, next) {
+    next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
 });
 
 
