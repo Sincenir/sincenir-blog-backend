@@ -40,6 +40,7 @@ class CustomDB {
      * @param datas
      */
     insert({ table, datas }) {
+        console.log(table, datas);
         return new Promise(async (resolve, reject) => {
             try {
                 let fields = ''; //字段名
@@ -51,6 +52,7 @@ class CustomDB {
                 fields = fields.slice(0, -1);
                 values = JSON.stringify(values).slice(1, -1);
                 const insertSql = `INSERT INTO ${table} (${fields}) VALUES (${values})`;
+                console.log(insertSql);
                 let insertResult = await this.query(insertSql); //写入结果
 
                 //是否成功写入
