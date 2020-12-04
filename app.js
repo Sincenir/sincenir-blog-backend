@@ -7,6 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+
 var app = express();
 
 // //只要加入这个配置，在req请求对象上会多出来一个属性
@@ -56,8 +57,10 @@ app.use(function (err, req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
 
     // render the error page
-    res.status(err.status || 500);
-    res.render('error');
+    // res.status(err.status || 500);
+    res.status(err.status || 500).send({ error: 'Something blew up!' });
+    // res.send({ error: 'Something blew up!' });
+    // res.render('error', {error: err});
 });
 
 

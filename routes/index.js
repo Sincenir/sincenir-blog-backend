@@ -1,6 +1,10 @@
 var express = require('express');
 var router = express.Router();
+let BusinessError = require('./error')
 const db = require('../server/db.js'); //引入封装的db模块
+
+let util = require('../utils/index.ts')
+// import { doubleQuotationMarkParaphrase, doubleQuotationMarkReparaphrase } from '../utils';
 
 
 function dataToTree(data) {
@@ -52,7 +56,10 @@ router.get('/', function (req, res, next) {
 router.post('/createBlogGroup', function (req, res) {
   db.insert({ table: "blog_group", datas: req.body })
     .then((result) => {
-      res.send('Got a POST request')
+      db.query(`SELECT * FROM blog_group WHERE id=${result.insertId}`)
+      .then((result) => {
+        res.send(result);
+      })
     }).catch((err) => {
     });
 })
@@ -67,32 +74,33 @@ router.post('/createBlog', function(req, res) {
   .then((result) => {
     db.query(`SELECT * FROM blog WHERE id=${result.insertId}`)
     .then((result) => {
-      res.send(JSON.parse(JSON.stringify(result)));
-    }).catch((err) => {
-      
-    });
+      res.send(result);
+    })
   }).catch((err) => {
   });
 })
 
-router.post('/updateBlog', function (req, res) {
+router.post('/updateBlog', function (req, res, next) {
   const submit = {
     id: req.body.id,
     name: req.body.name,
-    blog: req.body.blog,
+    blog: util.doubleQuotationMarkParaphrase(req.body.blog),
     title: req.body.title
   }
+  
   db.update({table: "blog", sets: submit, where: `id=${req.body.id}`})
   .then((result) => {
     res.send({status: 1})
   }).catch((err) => {
+
+    // next(new BusinessError(404, "错误"))
   });
 })
 
 router.get('/getGroups', (req, res) => {
   db.query("SELECT * FROM blog_group")
     .then((result) => {
-      let data = dataToTree(JSON.parse(JSON.stringify(result)))
+      let data = dataToTree(result)
       res.send(data);
     }).catch((err) => {
 
@@ -103,7 +111,7 @@ router.get('/getGroups', (req, res) => {
 router.get('/getBlogs', (req, res) => {
   db.query("SELECT * FROM blog")
     .then((result) => {
-      res.send(JSON.parse(JSON.stringify(result)));
+      res.send(result);
     }).catch((err) => {
 
     });
@@ -113,10 +121,10 @@ router.get('/getBlog', (req, res) => {
   // let groupIds = req.query.id.split(',');
   db.query("SELECT * FROM blog_group")
     .then((result) => {
-      let groupIds = getChildGroup(JSON.parse(JSON.stringify(result)), req.query.id);
+      let groupIds = getChildGroup(result, req.query.id);
       db.query(`SELECT id,name,title,create_date,update_date,creator FROM blog WHERE group_id in (${groupIds.join(',')})`)
         .then((result) => {
-          res.send(JSON.parse(JSON.stringify(result)))
+          res.send(result)
         }).catch((err) => {
           console.log(err);
         });
@@ -126,19 +134,11 @@ router.get('/getBlog', (req, res) => {
 router.get('/getBlogDetails', (req, res) => {
   db.query(`SELECT * FROM blog WHERE id=${req.query.id}`)
     .then((result) => {
-      res.send(JSON.parse(JSON.stringify(result))[0])
+      // result[0].blog = util.doubleQuotationMarkReparaphrase(result[0].blog)
+      res.send(result[0])
     }).catch((err) => {
       console.log(err);
     });
 })
-
-// router.get('/', (req, res) => {
-//   res.send("hello word");
-// })
-
-
-// router.post('/', (req, res) => {
-//   res.send("Got a POST request");
-// })?
 
 module.exports = router;

@@ -24,7 +24,7 @@ class CustomDB {
             //Execute SQL statement
             connection.query(sql, params, (err, results, fileds) => {
                 if (err) reject(`DATABASE ERROR：${err.message}`);
-                resolve(results, fileds);
+                resolve(JSON.parse(JSON.stringify(results)), fileds);
 
                 //Close the connection
                 connection.end(err => {
@@ -52,7 +52,6 @@ class CustomDB {
                 fields = fields.slice(0, -1);
                 values = JSON.stringify(values).slice(1, -1);
                 const insertSql = `INSERT INTO ${table} (${fields}) VALUES (${values})`;
-                console.log(insertSql);
                 let insertResult = await this.query(insertSql); //写入结果
 
                 //是否成功写入
@@ -80,7 +79,6 @@ class CustomDB {
                 }
                 setData = setData.slice(0, -2);
                 const updateSql = `UPDATE ${table} SET ${setData} WHERE ${where}`;
-                console.log(updateSql);
                 let updateResult = await this.query(updateSql);
                 if (updateResult.changedRows === 0) {
                     reject(`UPDATE ERROR: ${updateResult.message}`, updateResult);
